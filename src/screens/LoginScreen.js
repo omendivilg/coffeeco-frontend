@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   View,
   Text,
@@ -24,6 +24,25 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [socialLoading, setSocialLoading] = useState("")
+
+  // Verificar resultado de redirección al cargar (para móvil)
+  useEffect(() => {
+    if (Platform.OS !== "web") {
+      checkRedirectResult()
+    }
+  }, [])
+
+  const checkRedirectResult = async () => {
+    try {
+      const result = await authService.handleRedirectResult()
+      if (result.success) {
+        // La navegación se manejará automáticamente por el AuthStateChange
+      }
+    } catch (error) {
+      console.error("Error al verificar redirección:", error)
+    }
+  }
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -45,6 +64,49 @@ export default function LoginScreen({ navigation }) {
       Alert.alert("Error", "Ocurrió un error al iniciar sesión")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    setSocialLoading("google")
+    try {
+      const result = await authService.loginWithGoogle()
+      if (!result.success && result.error) {
+        Alert.alert("Error", result.error)
+      }
+      // Si es exitoso, la navegación se manejará por AuthStateChange
+    } catch (error) {
+      Alert.alert("Error", "Ocurrió un error al iniciar sesión con Google")
+    } finally {
+      setSocialLoading("")
+    }
+  }
+
+  const handleFacebookLogin = async () => {
+    setSocialLoading("facebook")
+    try {
+      const result = await authService.loginWithFacebook()
+      if (!result.success && result.error) {
+        Alert.alert("Error", result.error)
+      }
+    } catch (error) {
+      Alert.alert("Error", "Ocurrió un error al iniciar sesión con Facebook")
+    } finally {
+      setSocialLoading("")
+    }
+  }
+
+  const handleAppleLogin = async () => {
+    setSocialLoading("apple")
+    try {
+      const result = await authService.loginWithApple()
+      if (!result.success && result.error) {
+        Alert.alert("Error", result.error)
+      }
+    } catch (error) {
+      Alert.alert("Error", "Ocurrió un error al iniciar sesión con Apple")
+    } finally {
+      setSocialLoading("")
     }
   }
 
@@ -97,6 +159,43 @@ export default function LoginScreen({ navigation }) {
           >
             {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.loginButtonText}>Iniciar Sesión</Text>}
           </TouchableOpacity>
+
+          {/* Separador */}
+          <View style={styles.separator}>
+            <View style={styles.separatorLine} />
+            <Text style={styles.separatorText}>o continúa con</Text>
+            <View style={styles.separatorLine} />
+          </View>
+
+          {/* Botones de redes sociales */}
+          <View style={styles.socialButtonsContainer}>
+            <TouchableOpacity style={styles.socialButton} onPress={handleGoogleLogin} disabled={!!socialLoading}>
+              {socialLoading === "google" ? (
+                <ActivityIndicator size="small" color="#666" />
+              ) : (
+                <Ionicons name="logo-google" size={24} color="#DB4437" />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.socialButton} onPress={handleFacebookLogin} disabled={!!socialLoading}>
+              {socialLoading === "facebook" ? (
+                <ActivityIndicator size="small" color="#666" />
+              ) : (
+                <Ionicons name="logo-facebook" size={24} color="#4267B2" />
+              )}
+            </TouchableOpacity>
+
+            {/* Solo mostrar Apple en iOS o web */}
+            {(Platform.OS === "ios" || Platform.OS === "web") && (
+              <TouchableOpacity style={styles.socialButton} onPress={handleAppleLogin} disabled={!!socialLoading}>
+                {socialLoading === "apple" ? (
+                  <ActivityIndicator size="small" color="#666" />
+                ) : (
+                  <Ionicons name="logo-apple" size={24} color="#000" />
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
 
           <View style={styles.registerContainer}>
             <Text style={styles.registerText}>¿No tienes cuenta? </Text>
@@ -198,10 +297,46 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+  separator: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 20,
+  },
+  separatorLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#e5e5e5",
+  },
+  separatorText: {
+    marginHorizontal: 10,
+    color: "#666",
+    fontSize: 14,
+  },
+  socialButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
+  socialButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "#e5e5e5",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
   registerContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 24,
+    marginTop: 10,
   },
   registerText: {
     color: "#666",

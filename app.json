@@ -25,6 +25,12 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
-    "platforms": ["ios", "android", "web"]
+    "platforms": ["ios", "android", "web"],
+    "scheme": "coffeeco",
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id"
+      }
+    }
   }
 }

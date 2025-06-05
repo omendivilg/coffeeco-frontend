@@ -8,6 +8,9 @@ import { StatusBar } from "expo-status-bar"
 import { Ionicons } from "@expo/vector-icons"
 import { View, ActivityIndicator, Platform } from "react-native"
 
+// Importar la configuración web en la parte superior
+import { configureWebAuth } from "./firebase/web-auth-config"
+
 // Firebase
 import "./firebase/config"
 import authService from "./services/authService"
@@ -107,6 +110,32 @@ function MainStackNavigator() {
 export default function App() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+
+  // Añadir esta función dentro del componente App, justo después de la declaración de estados
+  useEffect(() => {
+    // Configurar autenticación web
+    if (Platform.OS === "web") {
+      configureWebAuth()
+    }
+  }, [])
+
+  // Verificar resultado de redirección al cargar (para móvil)
+  useEffect(() => {
+    if (Platform.OS !== "web") {
+      const checkRedirectResult = async () => {
+        try {
+          const result = await authService.handleRedirectResult()
+          if (result.success) {
+            setUser(result.user)
+          }
+        } catch (error) {
+          console.error("Error al verificar redirección:", error)
+        }
+      }
+
+      checkRedirectResult()
+    }
+  }, [])
 
   useEffect(() => {
     // Observar cambios en autenticación

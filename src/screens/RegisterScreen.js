@@ -19,6 +19,8 @@ import authService from "../../services/authService"
 const isWeb = Platform.OS === "web"
 
 export default function RegisterScreen({ navigation }) {
+  // Añadir estado para socialLoading al inicio del componente
+  const [socialLoading, setSocialLoading] = useState("")
   const [formData, setFormData] = useState({
     name: "",
     username: "",
@@ -193,6 +195,64 @@ export default function RegisterScreen({ navigation }) {
               )}
             </TouchableOpacity>
 
+            {/* Separador */}
+            <View style={styles.separator}>
+              <View style={styles.separatorLine} />
+              <Text style={styles.separatorText}>o regístrate con</Text>
+              <View style={styles.separatorLine} />
+            </View>
+
+            {/* Botones de redes sociales */}
+            <View style={styles.socialButtonsContainer}>
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={() => {
+                  setSocialLoading("google")
+                  authService.loginWithGoogle().finally(() => setSocialLoading(""))
+                }}
+                disabled={!!socialLoading}
+              >
+                {socialLoading === "google" ? (
+                  <ActivityIndicator size="small" color="#666" />
+                ) : (
+                  <Ionicons name="logo-google" size={24} color="#DB4437" />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={() => {
+                  setSocialLoading("facebook")
+                  authService.loginWithFacebook().finally(() => setSocialLoading(""))
+                }}
+                disabled={!!socialLoading}
+              >
+                {socialLoading === "facebook" ? (
+                  <ActivityIndicator size="small" color="#666" />
+                ) : (
+                  <Ionicons name="logo-facebook" size={24} color="#4267B2" />
+                )}
+              </TouchableOpacity>
+
+              {/* Solo mostrar Apple en iOS o web */}
+              {(Platform.OS === "ios" || Platform.OS === "web") && (
+                <TouchableOpacity
+                  style={styles.socialButton}
+                  onPress={() => {
+                    setSocialLoading("apple")
+                    authService.loginWithApple().finally(() => setSocialLoading(""))
+                  }}
+                  disabled={!!socialLoading}
+                >
+                  {socialLoading === "apple" ? (
+                    <ActivityIndicator size="small" color="#666" />
+                  ) : (
+                    <Ionicons name="logo-apple" size={24} color="#000" />
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
+
             <View style={styles.loginContainer}>
               <Text style={styles.loginText}>¿Ya tienes cuenta? </Text>
               <TouchableOpacity onPress={() => navigation.navigate("Login")}>
@@ -348,5 +408,41 @@ const styles = StyleSheet.create({
     color: "#8B4513",
     fontSize: 14,
     fontWeight: "600",
+  },
+  separator: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 20,
+  },
+  separatorLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#e5e5e5",
+  },
+  separatorText: {
+    marginHorizontal: 10,
+    color: "#666",
+    fontSize: 14,
+  },
+  socialButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
+  socialButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "#e5e5e5",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
 })
